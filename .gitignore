@@ -1,0 +1,11 @@
+/vendor/
+/.env
+.env.local
+.phpunit.result.cache
+*.log
+.DS_Store
+Thumbs.db
+public/uploads/*
+!public/uploads/.htaccess
+!public/uploads/default_honey.jpg
+!public/uploads/default_tomatoes.jpg

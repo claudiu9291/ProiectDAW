@@ -1,0 +1,53 @@
+name: AgroLocal MongoDB CI/CD Pipeline
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:7.0
+        env:
+          MONGO_INITDB_ROOT_USERNAME: root
+          MONGO_INITDB_ROOT_PASSWORD: SuperSecretRootPass!2026
+          MONGO_INITDB_DATABASE: agrolocal
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd="mongosh --eval 'db.runCommand(\"ping\").ok' --quiet"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP 8.2 with MongoDB & GD extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, mongodb, gd, fileinfo
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist
+      - name: Run Unit Tests
+        run: vendor/bin/phpunit tests/Unit
+      - name: Run Integration Tests (Authenticated MongoDB)
+        env:
+          MONGO_HOST: 127.0.0.1
+          MONGO_PORT: 27017
+          MONGO_DB: agrolocal
+          MONGO_USER: root
+          MONGO_PASS: SuperSecretRootPass!2026
+          MONGO_AUTH_SOURCE: admin
+        run: vendor/bin/phpunit tests/Integration
+      - name: Deploy to Production Server
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: burnett01/rsync-deployments@6.0.0
+        with:
+          switches: -avzr --delete --exclude=".env" --exclude=".git/" --exclude="tests/"
+          path: ./
+          remote_path: /var/www/agrolocal.ro/
+          remote_host: ${{ secrets.DEPLOY_HOST }}
+          remote_user: ${{ secrets.DEPLOY_USER }}
+          remote_key: ${{ secrets.DEPLOY_SSH_KEY }}

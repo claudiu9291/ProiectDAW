@@ -1,0 +1,44 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agrolocal_app
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    environment:
+      - MONGO_HOST=mongodb
+      - MONGO_PORT=27017
+      - MONGO_DB=agrolocal
+      - MONGO_USER=agro_user
+      - MONGO_PASS=AgroPass!2026#Sec
+      - MONGO_AUTH_SOURCE=agrolocal
+      - STRIPE_SECRET_KEY=sk_test_51MockStripeSecretKeyForAgroLocal2026DemoXyz12345
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  mongodb:
+    image: mongo:7.0
+    container_name: agrolocal_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=SuperSecretRootPass!2026
+      - MONGO_INITDB_DATABASE=agrolocal
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.runCommand('ping').ok", "--quiet"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo_data:

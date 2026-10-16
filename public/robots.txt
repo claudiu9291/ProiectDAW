@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Allow: /produs/
+Allow: /uploads/
+Disallow: /api/
+Disallow: /*?*session_id=
+Disallow: /*?*status=
+
+Sitemap: http://localhost:8000/sitemap.xml

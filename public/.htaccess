@@ -1,0 +1,14 @@
+Options -Indexes
+<FilesMatch "^\.|\.(bak|config|js|ini|log|sh|inc|swp|dist|json|lock)$">
+    Require all denied
+</FilesMatch>
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "DENY"
+</IfModule>
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^produs/([a-zA-Z0-9-]+)$ index.php?page=product&slug=$1 [L,QSA]
+</IfModule>
